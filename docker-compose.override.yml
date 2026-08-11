@@ -1,6 +1,28 @@
+# Local-development-only conveniences: host port mappings so you can hit
+# each service directly, live-reload, and bind-mounted source so edits on
+# your machine show up in the container immediately. Compose loads this
+# automatically for plain `docker compose up` - and ONLY for plain
+# `docker compose up`. The moment you pass explicit -f flags (as
+# docker-compose.prod.yml's instructions do), Compose ignores this file
+# entirely, which is what keeps these dev conveniences off of a real
+# deployment without needing to remember to remove anything.
+
 services:
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
   backend:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
 
   frontend:
     command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules

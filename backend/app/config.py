@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     # --- Optimizer ---
     solver_time_limit_seconds: float = 45.0
 
+    # --- CORS ---
+    # "*" is fine while this is only reached on a local network. Once
+    # reachable from the internet, set this to your actual domain(s)
+    # (comma-separated) - see docs/public-exposure-guide.md.
+    cors_allowed_origins: str = "*"
+
     # --- Synthetic data seed ---
     synthetic_footfall_rows_per_store: int = 100
     synthetic_employees_per_store: int = 30

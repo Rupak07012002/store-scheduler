@@ -29,6 +29,7 @@ See [docs/setup-runbook.md](docs/setup-runbook.md) for the full step-by-step wal
 | [docs/data-model.md](docs/data-model.md) | Every database table, its fields, and the reasoning behind the schema |
 | [docs/forecasting-and-optimization.md](docs/forecasting-and-optimization.md) | Plain-language explanation of the forecasting model and the scheduling optimizer - the "AI" parts |
 | [docs/setup-runbook.md](docs/setup-runbook.md) | Step-by-step on-premise deployment, from a clean machine to a working app |
+| [docs/public-exposure-guide.md](docs/public-exposure-guide.md) | Making that machine reachable from the internet (Cloudflare Tunnel or port-forwarding + TLS), plus a security checklist |
 | [docs/scaling-guide.md](docs/scaling-guide.md) | The concrete, ordered path from this on-prem v1 to a real production deployment with live Shopify data |
 | [docs/decisions/](docs/decisions/) | Short ADRs (Architecture Decision Records) explaining specific technical choices and their trade-offs |
 

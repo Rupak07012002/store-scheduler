@@ -1,0 +1,19 @@
+# Production overrides - use alongside the base file, explicitly:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile proxy up -d --build
+#
+# Passing explicit -f flags means Compose does NOT also load
+# docker-compose.override.yml (that file is only auto-loaded for plain
+# `docker compose up`), so none of the dev-only port mappings or live-reload
+# volumes from that file apply here. The base docker-compose.yml already
+# defaults to safe settings (no --reload, no exposed ports besides nginx);
+# the only thing actually different in production is which frontend image
+# gets built. See docs/public-exposure-guide.md for the full walkthrough.
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
