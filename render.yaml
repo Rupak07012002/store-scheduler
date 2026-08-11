@@ -1,0 +1,70 @@
+# Render Blueprint for Store Scheduler
+# ------------------------------------
+# Spins up three things from this GitHub repo:
+#   1. A managed PostgreSQL database
+#   2. The FastAPI backend (built from backend/Dockerfile)
+#   3. The React/Vite frontend as a static site (global CDN, never sleeps)
+#
+# How to use:
+#   1. Commit & push this file to GitHub.
+#   2. On https://render.com -> New -> Blueprint -> pick this repo.
+#   3. Render reads this file and creates all three services.
+#   4. Fill in the env vars marked "sync: false" in the dashboard (see notes
+#      at the bottom), then run the one-time DB migration + seed.
+#
+# Docs for the values below live in docs/setup-runbook.md and
+# docs/public-exposure-guide.md.
+
+databases:
+  - name: store-scheduler-db
+    databaseName: scheduler
+    user: scheduler
+    plan: free            # free Postgres expires ~30 days after creation; upgrade to keep data
+
+services:
+  # ---------------------------------------------------------------------------
+  # Backend: FastAPI + OR-Tools, built from your existing backend/Dockerfile
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: store-scheduler-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free            # 512MB RAM. OR-Tools+pandas is heavy; bump to "starter" ($7/mo) if it OOMs on boot.
+    # Listen on the port Render assigns (overrides the Dockerfile's fixed :8000)
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Injected automatically from the database above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: store-scheduler-db
+          property: connectionString
+      # Auto-generated strong secret - no need to set anything
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # Set this to your frontend URL once it's deployed (see notes below)
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # Change the seeded owner password from the public default before seeding
+      - key: SEED_OWNER_PASSWORD
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # Frontend: built as static files, served from Render's CDN (free, no sleep)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: store-scheduler-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      # Point the SPA at your backend's API. Baked in at BUILD time, so a
+      # change here requires a redeploy, not just a restart.
+      # Value should be:  https://store-scheduler-backend.onrender.com/api/v1
+      - key: VITE_API_BASE_URL
+        sync: false
+    routes:
+      # SPA fallback so client-side routes (e.g. /schedule) don't 404 on refresh
+      - type: rewrite
+        source: /*
+        destination: /index.html
