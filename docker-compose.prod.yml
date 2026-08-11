@@ -9,6 +9,13 @@
 # defaults to safe settings (no --reload, no exposed ports besides nginx);
 # the only thing actually different in production is which frontend image
 # gets built. See docs/public-exposure-guide.md for the full walkthrough.
+#
+# frontend.image is set to a DIFFERENT tag than the dev build
+# (store-scheduler-frontend:dev, in docker-compose.yml) specifically so
+# building this prod image can never silently overwrite the tag your local
+# `docker compose up` relies on, or vice versa - that collision previously
+# caused the dev frontend container to try running `npm run dev` inside the
+# prod nginx-based image (which has no npm) and crash-loop.
 
 services:
   frontend:
@@ -17,3 +24,4 @@ services:
       dockerfile: Dockerfile.prod
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    image: store-scheduler-frontend:prod
